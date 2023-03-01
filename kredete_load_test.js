@@ -19,32 +19,39 @@ const USERNAME = 'horiola@kredete.com';
 const PASSWORD = '#Passw0rd1';
 const BASE = 'https://identity.kredete.dev';
 
-export default () => {
-  const loginRes = http.post(`${BASE}/connect/token`, {
-    username: USERNAME,
-    password: PASSWORD,
+const ACCESS_TOKEN_ACQUISITION_PAYLOAD = {
+  username: USERNAME,
+  password: PASSWORD,
+  grant_type: "password",
+  client_id: "KredeteAdminAngularClient",
+  client_secret: "F621F470-9731-4A25-80EF-67A6F7C5F4B8",
+  scope: "KredeteNodeApi KredetePyApi openid profile offline_access"
+}
+
+export default async () => {
+  let authorizationResponse = await http.post(`${BASE}/connect/token`, ACCESS_TOKEN_ACQUISITION_PAYLOAD);
+  let responseBody = await authorizationResponse.json();
+
+  check(responseBody, {
+    'logged in successfully': (resp) => resp['access_token'] !== '',
   });
 
-  check(loginRes, {
-    'logged in successfully': (resp) => resp.json('access') !== '',
-  });
+  // get access token from response
+  let accessToken = responseBody["access_token"];
 
-  /* const authHeaders = {
+  const options = {
     headers: {
-      Authorization: `Bearer ${loginRes.json('access')}`,
-    },
-  }; */
-
-  const authHeaders = {
-    headers: {
-      Authorization: `Bearer ${loginRes.json('access')}`,
+      Authorization: `Bearer ${accessToken}`,
     },
   };
 
-  //const myObjects = http.get(`${BASE_URL}/users`, authHeaders).json();
+  // Test users endpoint
+  const getAllUsersReq = await http.get(`${BASE_URL}/users`, options);
+  let body = await getAllUsersReq.json();
 
-  const myObjects = http.get(`${BASE_URL}/users`, authHeaders).json();
-  check(myObjects, { 'retrieved users': (obj) => obj.length > 0 });
+  console.log(body);
+
+  check(body, { 'retrieved users': (users) => users.length > 0 });
 
   sleep(1);
 };
