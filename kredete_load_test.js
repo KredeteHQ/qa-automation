@@ -51,7 +51,7 @@ export default async () => {
 
   console.log(body);
 
-  check(body, { 'retrieved users': (users) => users.length > 0 });
+  check(body.data, { 'retrieved users': (users) => users.length > 0 });
 
   sleep(1);
 };
